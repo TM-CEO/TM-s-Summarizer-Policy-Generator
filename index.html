@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy AI Web App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #1a1b26;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #1a1b26;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #2a2b36;
+        }
+        
+        .sidebar-title {
+            font-size: 2rem;
+            color: #7b8cff;
+            margin-bottom: 40px;
+        }
+        
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .menu-item {
+            background-color: #4551dd;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .menu-item:hover {
+            background-color: #5767f5;
+        }
+        
+        .menu-item.inactive {
+            background-color: transparent;
+            color: white;
+        }
+        
+        .menu-item.inactive:hover {
+            background-color: #2a2b36;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .content-box {
+            background-color: #222236;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .content-title {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .content-title::after {
+            content: "";
+            display: block;
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, #4551dd, #7b8cff);
+            margin: 10px auto 0;
+            border-radius: 3px;
+        }
+        
+        .file-upload {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .file-name {
+            color: #aaa;
+            margin: 10px 0;
+            font-style: italic;
+        }
+        
+        .upload-btn {
+            background-color: #4551dd;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .upload-btn:hover {
+            background-color: #5767f5;
+        }
+        
+        .action-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        .action-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .result-area {
+            width: 100%;
+            min-height: 200px;
+            background-color: #2a2b36;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 30px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            color: #ddd;
+            border-left: 4px solid #4551dd;
+        }
+        
+        .form-group {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #bbb;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #2a2b36;
+            color: white;
+            min-height: 120px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #2a2b36;
+            color: white;
+            font-family: inherit;
+        }
+        
+        .container {
+            width: 100%;
+            display: none;
+        }
+        
+        .container.active {
+            display: block;
+        }
+        
+        #file-input {
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .loading::after {
+            content: "...";
+            animation: dots 1.5s infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: "."; }
+            40% { content: ".."; }
+            60%, 100% { content: "..."; }
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-container">
+            <h1 class="sidebar-title animated-logo">AI</h1>
+        </div>
+        <h2 style="margin-bottom: 30px;">Policy AI Platform</h2>
+        <div class="sidebar-menu">
+            <a href="#" class="menu-item" id="summarizer-link">Document Summarizer</a>
+            <a href="#" class="menu-item inactive" id="generator-link">Policy Generator</a>
+            <a href="#" class="menu-item inactive" id="classifier-link" style="display:none;">Inquiry Classifier</a>
+            <a href="#" class="menu-item inactive" id="product-link" style="display:none;">Product Name Generator</a>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <!-- Document Summarizer -->
+        <div class="container active" id="summarizer-container">
+            <div class="content-box">
+                <h2 class="content-title">Document Summarizer</h2>
+                <div class="file-upload">
+                    <input type="file" id="file-input" accept=".txt,.pdf,.doc,.docx">
+                    <button class="upload-btn" id="choose-file-btn">Choose Document</button>
+                    <div class="file-name" id="file-name">boc-travel-insurance-policy-mctc-form_en.pdf</div>
+                </div>
+                <button class="action-btn" id="generate-summary-btn">Generate Summary</button>
+                <div class="loading" id="summary-loading">Generating summary</div>
+                <div class="error-message" id="summary-error"></div>
+                <pre class="result-area" id="summary-result">undefined</pre>
+            </div>
+        </div>
+        
+        <!-- Policy Generator -->
+        <div class="container" id="generator-container">
+            <div class="content-box">
+                <h2 class="content-title">Policy Generator</h2>
+                <div class="form-group">
+                    <label for="scenario-input">Describe your scenario:</label>
+                    <textarea id="scenario-input" placeholder="E.g., A small business looking to implement a remote work policy post-pandemic..."></textarea>
+                </div>
+                <button class="action-btn" id="generate-policy-btn">Generate Policy</button>
+                <div class="loading" id="policy-loading">Generating policy</div>
+                <div class="error-message" id="policy-error"></div>
+                <pre class="result-area" id="policy-result"></pre>
+            </div>
+        </div>
+        
+        <!-- Hidden but included for completeness -->
+        <div class="container" id="classifier-container">
+            <div class="content-box">
+                <h2 class="content-title">Inquiry Classifier</h2>
+                <div class="form-group">
+                    <label for="inquiry-input">Enter customer inquiry:</label>
+                    <textarea id="inquiry-input" placeholder="Enter the customer inquiry text here..."></textarea>
+                </div>
+                <button class="action-btn" id="classify-btn">Classify Inquiry</button>
+                <div class="loading" id="classify-loading">Classifying</div>
+                <div class="error-message" id="classify-error"></div>
+                <pre class="result-area" id="classify-result"></pre>
+            </div>
+        </div>
+        
+        <!-- Hidden but included for completeness -->
+        <div class="container" id="product-container">
+            <div class="content-box">
+                <h2 class="content-title">Product Name Generator</h2>
+                <div class="form-group">
+                    <label for="description-input">Product Description:</label>
+                    <textarea id="description-input" placeholder="Describe your product..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="seed-words-input">Seed Words (comma separated):</label>
+                    <input type="text" id="seed-words-input" placeholder="modern, tech, innovative">
+                </div>
+                <button class="action-btn" id="generate-names-btn">Generate Names</button>
+                <div class="loading" id="names-loading">Generating names</div>
+                <div class="error-message" id="names-error"></div>
+                <pre class="result-area" id="names-result"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Menu navigation
+            const menuLinks = {
+                'summarizer-link': 'summarizer-container',
+                'generator-link': 'generator-container',
+                'classifier-link': 'classifier-container',
+                'product-link': 'product-container'
+            };
+            
+            Object.keys(menuLinks).forEach(linkId => {
+                document.getElementById(linkId).addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Hide all containers
+                    document.querySelectorAll('.container').forEach(container => {
+                        container.classList.remove('active');
+                    });
+                    
+                    // Show selected container
+                    document.getElementById(menuLinks[linkId]).classList.add('active');
+                    
+                    // Update menu styles
+                    document.querySelectorAll('.menu-item').forEach(item => {
+                        item.classList.add('inactive');
+                    });
+                    this.classList.remove('inactive');
+                });
+            });
+            
+            // File upload
+            document.getElementById('choose-file-btn').addEventListener('click', function() {
+                document.getElementById('file-input').click();
+            });
+            
+            document.getElementById('file-input').addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    document.getElementById('file-name').textContent = this.files[0].name;
+                }
+            });
+            
+            // Document Summarizer
+            document.getElementById('generate-summary-btn').addEventListener('click', function() {
+                const fileInput = document.getElementById('file-input');
+                const resultArea = document.getElementById('summary-result');
+                const loading = document.getElementById('summary-loading');
+                const error = document.getElementById('summary-error');
+                
+                error.style.display = 'none';
+                
+                if (fileInput.files && fileInput.files[0]) {
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    
+                    resultArea.textContent = '';
+                    loading.style.display = 'block';
+                    
+                    fetch('/summarize', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        loading.style.display = 'none';
+                        if (data.error) {
+                            error.textContent = data.error;
+                            error.style.display = 'block';
+                        } else {
+                            resultArea.textContent = data.summary;
+                        }
+                    })
+                    .catch(err => {
+                        loading.style.display = 'none';
+                        error.textContent = 'Failed to connect to server. Please try again.';
+                        error.style.display = 'block';
+                        console.error('Error:', err);
+                    });
+                } else {
+                    error.textContent = 'Please select a file first.';
+                    error.style.display = 'block';
+                }
+            });
+            
+            // Policy Generator
+            document.getElementById('generate-policy-btn').addEventListener('click', function() {
+                const scenarioInput = document.getElementById('scenario-input');
+                const resultArea = document.getElementById('policy-result');
+                const loading = document.getElementById('policy-loading');
+                const error = document.getElementById('policy-error');
+                
+                error.style.display = 'none';
+                
+                if (scenarioInput.value.trim() === '') {
+                    error.textContent = 'Please enter a scenario.';
+                    error.style.display = 'block';
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('scenario', scenarioInput.value);
+                
+                resultArea.textContent = '';
+                loading.style.display = 'block';
+                
+                fetch('/generate', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    if (data.error) {
+                        error.textContent = data.error;
+                        error.style.display = 'block';
+                    } else {
+                        resultArea.textContent = data.policy;
+                    }
+                })
+                .catch(err => {
+                    loading.style.display = 'none';
+                    error.textContent = 'Failed to connect to server. Please try again.';
+                    error.style.display = 'block';
+                    console.error('Error:', err);
+                });
+            });
+            
+            // Inquiry Classifier
+            document.getElementById('classify-btn').addEventListener('click', function() {
+                const inquiryInput = document.getElementById('inquiry-input');
+                const resultArea = document.getElementById('classify-result');
+                const loading = document.getElementById('classify-loading');
+                const error = document.getElementById('classify-error');
+                
+                error.style.display = 'none';
+                
+                if (inquiryInput.value.trim() === '') {
+                    error.textContent = 'Please enter an inquiry.';
+                    error.style.display = 'block';
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('inquiry', inquiryInput.value);
+                
+                resultArea.textContent = '';
+                loading.style.display = 'block';
+                
+                fetch('/classify', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    if (data.error) {
+                        error.textContent = data.error;
+                        error.style.display = 'block';
+                    } else {
+                        resultArea.textContent = data.category;
+                    }
+                })
+                .catch(err => {
+                    loading.style.display = 'none';
+                    error.textContent = 'Failed to connect to server. Please try again.';
+                    error.style.display = 'block';
+                    console.error('Error:', err);
+                });
+            });
+            
+            // Product Name Generator
+            document.getElementById('generate-names-btn').addEventListener('click', function() {
+                const descriptionInput = document.getElementById('description-input');
+                const seedWordsInput = document.getElementById('seed-words-input');
+                const resultArea = document.getElementById('names-result');
+                const loading = document.getElementById('names-loading');
+                const error = document.getElementById('names-error');
+                
+                error.style.display = 'none';
+                
+                if (descriptionInput.value.trim() === '') {
+                    error.textContent = 'Please enter a product description.';
+                    error.style.display = 'block';
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('description', descriptionInput.value);
+                formData.append('seed_words', seedWordsInput.value);
+                
+                resultArea.textContent = '';
+                loading.style.display = 'block';
+                
+                fetch('/product_names', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    if (data.error) {
+                        error.textContent = data.error;
+                        error.style.display = 'block';
+                    } else {
+                        resultArea.textContent = data.product_names;
+                    }
+                })
+                .catch(err => {
+                    loading.style.display = 'none';
+                    error.textContent = 'Failed to connect to server. Please try again.';
+                    error.style.display = 'block';
+                    console.error('Error:', err);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
