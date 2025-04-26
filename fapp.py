@@ -15,7 +15,7 @@ app.config['UPLOAD_FOLDER'] = 'uploads/'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Configure OpenAI API
-OPENAI_API_KEY = "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"  # Replace with your OpenAI API key
+OPENAI_API_KEY = ""  # Replace with your OpenAI API key
 openai.api_key = OPENAI_API_KEY
 
 # Basic fallback summarization function
